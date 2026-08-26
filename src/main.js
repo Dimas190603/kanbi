@@ -2,6 +2,9 @@ import './style.css';
 import javascriptLogo from './assets/javascript.svg';
 import viteLogo from './assets/vite.svg';
 import heroImg from './assets/hero.png';
+import Store from './core/Store.js';
+import Command from './core/Command.js';
+import CommandManager from './core/CommandManager.js';
 
 document.querySelector('#app').innerHTML = `
 <section id="center">
@@ -55,5 +58,33 @@ document.querySelector('#app').innerHTML = `
 <div class="ticks"></div>
 <section id="spacer"></section>
 `;
+// Testing fase kanbi app
+class AddCommand extends Command {
+  constructor(store, value) {
+    super();
+    this.store = store;
+    this.value = value;
+  }
 
-setupCounter(document.querySelector('#counter'));
+  execute() {
+    const current = this.store.getState();
+    this.store.setState({ count: current.count + this.value });
+  }
+
+  undo() {
+    const current = this.store.getState();
+    this.store.setState({ count: current.count - this.value });
+  }
+}
+
+const store = new Store({ count: 0 });
+const manager = new CommandManager();
+
+manager.execute(new AddCommand(store, 5));
+manager.execute(new AddCommand(store, 3));
+
+manager.undo();
+
+manager.execute(new AddCommand(store, 10));
+console.log(store);
+console.log(manager);
