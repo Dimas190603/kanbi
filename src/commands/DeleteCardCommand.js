@@ -11,21 +11,17 @@ export default class DeleteCardCommand extends Command {
 
   execute() {
     const state = this.store.getState();
+    const freshColumn = state.columns[this.column.id]; // <- BARU, ambil fresh
 
     this.deletedCard = state.cards[this.cardId];
 
-    // Delete Card
     const currentCards = { ...state.cards };
     delete currentCards[this.cardId];
 
-    // Detele key cardIds yang ada didalam Object column
-    const currentCardIds = this.column.cardIds.filter(
+    const currentCardIds = freshColumn.cardIds.filter(
       (id) => id !== this.cardId
-    );
-    const currentColumn = {
-      ...this.column,
-      cardIds: currentCardIds,
-    };
+    ); // <- pakai freshColumn
+    const currentColumn = { ...freshColumn, cardIds: currentCardIds }; // <- pakai freshColumn
 
     const currentColumns = {
       ...state.columns,
@@ -41,17 +37,12 @@ export default class DeleteCardCommand extends Command {
 
   undo() {
     const state = this.store.getState();
+    const freshColumn = state.columns[this.column.id];
 
-    const currentCards = {
-      ...state.cards,
-      [this.cardId]: this.deletedCard,
-    };
+    const currentCards = { ...state.cards, [this.cardId]: this.deletedCard };
 
-    const currentCardIds = [...this.column.cardIds, this.cardId];
-    const currentColumn = {
-      ...this.column,
-      cardIds: currentCardIds,
-    };
+    const currentCardIds = [...freshColumn.cardIds, this.cardId];
+    const currentColumn = { ...freshColumn, cardIds: currentCardIds };
 
     const currentColumns = {
       ...state.columns,
