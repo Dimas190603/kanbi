@@ -7,6 +7,7 @@ export default class DeleteCardCommand extends Command {
     this.column = column;
     this.cardId = cardId;
     this.deletedCard = null;
+    this.deletedCardIndex = -1;
   }
 
   execute() {
@@ -14,6 +15,7 @@ export default class DeleteCardCommand extends Command {
     const freshColumn = state.columns[this.column.id]; // <- BARU, ambil fresh
 
     this.deletedCard = state.cards[this.cardId];
+    this.deletedCardIndex = freshColumn.cardIds.indexOf(this.cardId);
 
     const currentCards = { ...state.cards };
     delete currentCards[this.cardId];
@@ -41,7 +43,11 @@ export default class DeleteCardCommand extends Command {
 
     const currentCards = { ...state.cards, [this.cardId]: this.deletedCard };
 
-    const currentCardIds = [...freshColumn.cardIds, this.cardId];
+    const currentCardIds = [
+      ...freshColumn.cardIds.slice(0, this.deletedCardIndex),
+      this.cardId,
+      ...freshColumn.cardIds.slice(this.deletedCardIndex),
+    ];
     const currentColumn = { ...freshColumn, cardIds: currentCardIds };
 
     const currentColumns = {
