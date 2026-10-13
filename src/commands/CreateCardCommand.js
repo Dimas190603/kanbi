@@ -1,15 +1,16 @@
 import Command from '../core/Command.js';
 
 export default class CreateCardCommand extends Command {
-  constructor(store, column, card) {
+  constructor(store, columnId, card) {
     super();
     this.store = store;
-    this.column = column;
+    this.columnId = columnId;
     this.card = card;
   }
 
   execute() {
     const state = this.store.getState();
+    const column = state.columns[this.columnId];
 
     // New Cards
     const newCards = {
@@ -18,16 +19,15 @@ export default class CreateCardCommand extends Command {
     };
 
     // New Column
-    const newCardIds = [...this.column.cardIds, this.card.id];
     const newColumn = {
-      ...this.column,
-      cardIds: newCardIds,
+      ...column,
+      cardIds: [...column.cardIds, this.card.id],
     };
 
     // Kumpulan Column yang lama dengan entry dengan Column dituju
     const newColumns = {
       ...state.columns,
-      [this.column.id]: newColumn,
+      [this.columnId]: newColumn,
     };
 
     // Memperbarui state setelah terjadi perubahan pada Cards
@@ -41,23 +41,21 @@ export default class CreateCardCommand extends Command {
   undo() {
     // Soal penamaan variable tolong bantu aku ya, karena aku susah dalam penamaan
     const state = this.store.getState();
+    const column = state.columns[this.columnId];
 
     // Card
-    const cardId = this.card.id; // Mengambil Id card yang dituju
     const newCards = { ...state.cards }; //Membuat salinan Cards dari data yang lama
-    delete newCards[cardId]; // Menghapus card sesuai dari card yang dituju melalui salinan dari Cards
+    delete newCards[this.card.id]; // Menghapus card sesuai dari card yang dituju melalui salinan dari Cards
 
     // Column
-    const newCardIds = this.column.cardIds.filter((id) => id !== cardId);
-
     const newColumn = {
-      ...this.column,
-      cardIds: newCardIds,
+      ...column,
+      cardIds: column.cardIds.filter((id) => id !== this.card.id),
     };
 
     const newColumns = {
       ...state.columns,
-      [this.column.id]: newColumn,
+      [this.columnId]: newColumn,
     };
 
     // Memperbarui State yang sudah berhasil di Undo

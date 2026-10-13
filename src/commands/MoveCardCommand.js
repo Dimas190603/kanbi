@@ -1,53 +1,62 @@
 import Command from '../core/Command.js';
 
 export default class MoveCardCommand extends Command {
-  constructor(store, cardId, sourceColumn, destinationColumn) {
+  constructor(store, cardId, sourceColumnId, destinationColumnId) {
     super();
     this.store = store;
     this.cardId = cardId;
-    this.sourceColumn = sourceColumn;
-    this.destinationColumn = destinationColumn;
+    this.sourceColumnId = sourceColumnId;
+    this.destinationColumnId = destinationColumnId;
     this.sourceIndex = -1;
   }
 
   execute() {
     const state = this.store.getState();
-    this.sourceIndex = state.columns[this.sourceColumn.id].cardIds.indexOf(
+
+    this.sourceIndex = state.columns[this.sourceColumnId].cardIds.indexOf(
       this.cardId
     );
-    this.#moveCard(this.sourceColumn, this.destinationColumn);
+    this.#moveCard(this.sourceColumnId, this.destinationColumnId);
   }
 
   undo() {
-    this.#moveCard(this.destinationColumn, this.sourceColumn, this.sourceIndex);
+    this.#moveCard(
+      this.destinationColumnId,
+      this.sourceColumnId,
+      this.sourceIndex
+    );
   }
 
-  #moveCard(from, to, insertIndex = null) {
+  #moveCard(fromId, toId, insertIndex = null) {
     const state = this.store.getState();
-    const freshFrom = state.columns[from.id];
-    const freshTo = state.columns[to.id];
+    const from = state.columns[fromId];
+    const to = state.columns[toId];
 
-    const newFromCardIds = freshFrom.cardIds.filter((id) => id !== this.cardId);
-    const newFromColumn = { ...freshFrom, cardIds: newFromCardIds };
-
-    const index = insertIndex ?? freshTo.cardIds.length;
-    const newToCardIds = [
-      ...freshTo.cardIds.slice(0, index),
-      this.cardId,
-      ...freshTo.cardIds.slice(index),
-    ];
-    const newToColumn = { ...freshTo, cardIds: newToCardIds };
-
-    const originalCard = state.cards[this.cardId];
-    const newCard = { ...originalCard, columnId: to.id };
-
-    const newCards = { ...state.cards, [this.cardId]: newCard };
-    const newColumns = {
-      ...state.columns,
-      [from.id]: newFromColumn,
-      [to.id]: newToColumn,
+    const newFromColumn = {
+      ...from,
+      cardIds: from.cardIds.filter((id) => id !== this.cardId),
     };
 
-    this.store.setState({ ...state, cards: newCards, columns: newColumns });
+    const index = insertIndex ?? to.cardIds.length;
+    const newToColumn = {
+      ...to,
+      cardIds: [
+        ...to.cardIds.slice(0, index),
+        this.cardId,
+        ...to.cardIds.slice(index),
+      ],
+    };
+
+    const newCard = { ...state.cards[this.cardId], columnId: toId };
+
+    this.store.setState({
+      ...state,
+      cards: { ...state.cards, [this.cardId]: newCard },
+      columns: {
+        ...state.columns,
+        [fromId]: newFromColumn,
+        [toId]: newToColumn,
+      },
+    });
   }
 }

@@ -9,45 +9,39 @@ describe('CreateCardCommand', () => {
   let store;
   let newCard;
 
-  // Arrange: jalan otomatis sebelum SETIAP it(), jadi tiap test mulai dari data bersih
   beforeEach(() => {
     initialColumn = new Column({ id: 'col-1', name: 'To Do', cardIds: [] });
-
     store = new Store({
-      board: { id: 'board-1', name: 'Board Test' },
+      board: { id: 'board-1', name: 'Test Board' },
       cards: {},
       columns: { [initialColumn.id]: initialColumn },
       columnOrder: ['col-1'],
     });
-
     newCard = new Card({
       id: 'card-1',
       title: 'Card Pertama',
-      description: 'Deskripsi test card pertama.',
+      description: 'Deskripsi test',
       columnId: 'col-1',
     });
   });
 
   it('menambahkan card baru ke dalam cards tanpa mutasi data lama', () => {
-    // Act
-    const command = new CreateCardCommand(store, initialColumn, newCard);
-    command.execute();
+    new CreateCardCommand(store, 'col-1', newCard).execute();
 
-    // Assert
-    const updatedState = store.getState();
-    expect(updatedState.cards['card-1']).toEqual(newCard);
-    expect(updatedState.columns['col-1'].cardIds).toEqual(['card-1']);
+    const state = store.getState();
+    expect(state.cards['card-1']).toEqual(newCard);
+    expect(state.columns['col-1'].cardIds).toEqual(['card-1']);
     expect(initialColumn.cardIds).toEqual([]);
   });
 
-  it('Mengembalikkan state seperti semula setelah di-undo', () => {
-    const command = new CreateCardCommand(store, initialColumn, newCard);
+  it('mengembalikan state seperti semula setelah di-undo', () => {
+    const command = new CreateCardCommand(store, 'col-1', newCard);
     command.execute();
     command.undo();
 
-    const updatedState = store.getState();
-    expect(updatedState.cards['card-1']).toBeUndefined();
-    expect(updatedState.cards).toEqual({});
-    expect(updatedState.columns['col-1'].cardIds).toEqual([]);
+    const state = store.getState();
+    expect(state.cards['card-1']).toBeUndefined();
+    expect(state.cards).toEqual({});
+    expect(state.columns['col-1'].cardIds).toEqual([]);
   });
 });

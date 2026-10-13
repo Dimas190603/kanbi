@@ -11,6 +11,7 @@ import CreateCardCommand from './commands/CreateCardCommand.js';
 import DeleteCardCommand from './commands/DeleteCardCommand.js';
 
 import renderBoard from './views/BoardView.js';
+import MoveCardCommand from './commands/MoveCardCommand.js';
 
 // document.querySelector('#app').innerHTML = `
 // <section id="center">
@@ -83,6 +84,12 @@ const column = new Column({
   cardIds: ['card-1'],
 });
 
+const inProgresColumn = new Column({
+  id: 'col-2',
+  name: 'In Progress',
+  cardIds: [],
+});
+
 // Board
 const board = new Board({
   id: 'board-1',
@@ -96,8 +103,9 @@ const state = {
   },
   columns: {
     [column.id]: column,
+    [inProgresColumn.id]: inProgresColumn,
   },
-  columnOrder: ['col-1'],
+  columnOrder: ['col-1', 'col-2'],
 };
 
 // Store data
@@ -119,24 +127,6 @@ const newCard = new Card({
   columnId: 'col-1',
 });
 
-manager.execute(new CreateCardCommand(store, column, newCard));
-
-// Meng-undo Command ke langkah sebelumnya
-// manager.undo();
-
-// Test untuk perintah menghapus card
-manager.execute(new DeleteCardCommand(store, column, newCard.id));
-manager.undo();
-
-// const currentState = store.getState();
-// store.setState({
-//   ...currentState,
-//   cards: {
-//     ...currentState.cards,
-//     [card.id]: { ...currentState.cards[card.id], title: 'Manage State' },
-//   },
-//   columns: {
-//     ...currentState.columns,
-//     [column.id]: { ...currentState.columns[column.id], name: 'Learn to React' },
-//   },
-// });
+manager.execute(new CreateCardCommand(store, 'col-1', newCard));
+manager.execute(new DeleteCardCommand(store, 'col-1', 'card-2'));
+manager.execute(new MoveCardCommand(store, 'card-1', 'col-1', 'col-2'));

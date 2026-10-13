@@ -1,64 +1,66 @@
 import Command from '../core/Command';
 
 export default class DeleteCardCommand extends Command {
-  constructor(store, column, cardId) {
+  constructor(store, columnId, cardId) {
     super();
     this.store = store;
-    this.column = column;
+    this.columnId = columnId;
     this.cardId = cardId;
     this.deletedCard = null;
-    this.deletedCardIndex = -1;
+    this.deletedIndex = -1;
   }
 
   execute() {
     const state = this.store.getState();
-    const freshColumn = state.columns[this.column.id]; // <- BARU, ambil fresh
+    const column = state.columns[this.columnId];
 
     this.deletedCard = state.cards[this.cardId];
-    this.deletedCardIndex = freshColumn.cardIds.indexOf(this.cardId);
+    this.deletedIndex = column.cardIds.indexOf(this.cardId);
 
-    const currentCards = { ...state.cards };
-    delete currentCards[this.cardId];
+    const newCards = { ...state.cards };
+    delete newCards[this.cardId];
 
-    const currentCardIds = freshColumn.cardIds.filter(
-      (id) => id !== this.cardId
-    ); // <- pakai freshColumn
-    const currentColumn = { ...freshColumn, cardIds: currentCardIds }; // <- pakai freshColumn
+    const newColumn = {
+      ...column,
+      cardIds: column.cardIds.filter((id) => id !== this.cardId),
+    }; // <- pakai column
 
-    const currentColumns = {
+    const newColumns = {
       ...state.columns,
-      [this.column.id]: currentColumn,
+      [this.columnId]: newColumn,
     };
 
     this.store.setState({
       ...state,
-      cards: currentCards,
-      columns: currentColumns,
+      cards: newCards,
+      columns: newColumns,
     });
   }
 
   undo() {
     const state = this.store.getState();
-    const freshColumn = state.columns[this.column.id];
+    const column = state.columns[this.columnId];
 
-    const currentCards = { ...state.cards, [this.cardId]: this.deletedCard };
+    const newCards = { ...state.cards, [this.cardId]: this.deletedCard };
 
-    const currentCardIds = [
-      ...freshColumn.cardIds.slice(0, this.deletedCardIndex),
-      this.cardId,
-      ...freshColumn.cardIds.slice(this.deletedCardIndex),
-    ];
-    const currentColumn = { ...freshColumn, cardIds: currentCardIds };
+    const newColumn = {
+      ...column,
+      cardIds: [
+        ...column.cardIds.slice(0, this.deletedIndex),
+        this.cardId,
+        ...column.cardIds.slice(this.deletedIndex),
+      ],
+    };
 
-    const currentColumns = {
+    const newColumns = {
       ...state.columns,
-      [this.column.id]: currentColumn,
+      [this.columnId]: newColumn,
     };
 
     this.store.setState({
       ...state,
-      cards: currentCards,
-      columns: currentColumns,
+      cards: newCards,
+      columns: newColumns,
     });
   }
 }

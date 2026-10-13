@@ -33,7 +33,7 @@ describe('MoveCardCommand', () => {
   });
 
   it('memindahkan card ke kolom tujuan dan memperbarui columnId tanpa mutasi data lama', () => {
-    new MoveCardCommand(store, 'card-1', source, destination).execute();
+    new MoveCardCommand(store, 'card-1', 'col-1', 'col-2').execute();
 
     const state = store.getState();
     expect(state.columns['col-1'].cardIds).toEqual(['card-0', 'card-2']);
@@ -43,7 +43,7 @@ describe('MoveCardCommand', () => {
   });
 
   it('mengembalikan card ke posisi aslinya di kolom asal setelah di-undo', () => {
-    const command = new MoveCardCommand(store, 'card-1', source, destination);
+    const command = new MoveCardCommand(store, 'card-1', 'col-1', 'col-2');
     command.execute();
     command.undo();
 
