@@ -13,6 +13,8 @@ import DeleteCardCommand from './commands/DeleteCardCommand.js';
 import renderBoard from './views/BoardView.js';
 import MoveCardCommand from './commands/MoveCardCommand.js';
 
+import initApp from './app.js';
+
 // document.querySelector('#app').innerHTML = `
 // <section id="center">
 //   <div class="hero">
@@ -68,6 +70,8 @@ import MoveCardCommand from './commands/MoveCardCommand.js';
 
 // DOM
 const boardEl = document.querySelector('#board');
+const undoBtn = document.querySelector('#undo-btn');
+const redoBtn = document.querySelector('#redo-btn');
 
 // Card
 const card = new Card({
@@ -108,25 +112,23 @@ const state = {
   columnOrder: ['col-1', 'col-2'],
 };
 
+const newCard = new Card({
+  id: 'card-2',
+  title: 'Second Card',
+  description: 'Tes card baru',
+  columnId: column.id,
+});
+
 // Store data
 const store = new Store(state);
 console.log(store);
-
-// Board element
-renderBoard(store, boardEl);
-store.subscribe(() => renderBoard(store, boardEl));
-
-// New Command Manager
 const manager = new CommandManager();
-// Bikin Card baru untuk tes Command "membuat Card baru"
-const newCard = new Card({
-  id: 'card-2',
-  title: 'Membuat Perintah Untuk Membuat Card Baru',
-  description:
-    'Mencoba menjalankan perintah membuat card baru, berhasil atau tidak',
-  columnId: 'col-1',
-});
 
-manager.execute(new CreateCardCommand(store, 'col-1', newCard));
-manager.execute(new DeleteCardCommand(store, 'col-1', 'card-2'));
-manager.execute(new MoveCardCommand(store, 'card-1', 'col-1', 'col-2'));
+initApp(store, manager, boardEl, undoBtn, redoBtn);
+manager.execute(new CreateCardCommand(store, column.id, newCard));
+
+manager.execute(new DeleteCardCommand(store, column.id, card.id));
+
+manager.execute(
+  new MoveCardCommand(store, newCard.id, column.id, inProgresColumn.id)
+);
