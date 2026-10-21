@@ -23,7 +23,28 @@ export function createColumnElement(column, cards) {
     list.appendChild(cardElement);
   });
 
-  container.append(title, list);
+  /**
+   * Membuat form kecil di setiap kolom untuk menambahkan card baru
+   */
+  // Form
+  const form = document.createElement('form');
+  form.className = 'add-card-form';
+  form.dataset.columnId = column.id;
+
+  // Input Title
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'title';
+  input.placeholder = 'Title a new card...';
+  input.setAttribute('aria-label', `Title a new card for ${column.name}`);
+
+  // Button
+  const button = document.createElement('button');
+  button.type = 'submit';
+  button.textContent = 'Add';
+
+  form.append(input, button);
+  container.append(title, form, list);
   return container;
 }
 

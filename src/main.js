@@ -121,14 +121,17 @@ const newCard = new Card({
 
 // Store data
 const store = new Store(state);
-console.log(store);
+
 const manager = new CommandManager();
 
-initApp(store, manager, boardEl, undoBtn, redoBtn);
-manager.execute(new CreateCardCommand(store, column.id, newCard));
+initApp({ store, manager, boardEl, undoBtn, redoBtn });
+store.subscribe(() => {
+  console.log('state sekarang:', structuredClone(store.getState()));
+});
+manager.execute(new CreateCardCommand(store, newCard));
 
-manager.execute(new DeleteCardCommand(store, column.id, card.id));
+// manager.execute(new DeleteCardCommand(store, column.id, card.id));
 
-manager.execute(
-  new MoveCardCommand(store, newCard.id, column.id, inProgresColumn.id)
-);
+// manager.execute(
+//   new MoveCardCommand(store, newCard.id, column.id, inProgresColumn.id)
+// );

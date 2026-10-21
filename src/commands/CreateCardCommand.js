@@ -1,16 +1,16 @@
 import Command from '../core/Command.js';
 
 export default class CreateCardCommand extends Command {
-  constructor(store, columnId, card) {
+  constructor(store, card) {
     super();
     this.store = store;
-    this.columnId = columnId;
     this.card = card;
   }
 
   execute() {
     const state = this.store.getState();
-    const column = state.columns[this.columnId];
+    const columnId = this.card.columnId;
+    const column = state.columns[columnId];
 
     // New Cards
     const newCards = {
@@ -27,7 +27,7 @@ export default class CreateCardCommand extends Command {
     // Kumpulan Column yang lama dengan entry dengan Column dituju
     const newColumns = {
       ...state.columns,
-      [this.columnId]: newColumn,
+      [columnId]: newColumn,
     };
 
     // Memperbarui state setelah terjadi perubahan pada Cards
@@ -41,7 +41,8 @@ export default class CreateCardCommand extends Command {
   undo() {
     // Soal penamaan variable tolong bantu aku ya, karena aku susah dalam penamaan
     const state = this.store.getState();
-    const column = state.columns[this.columnId];
+    const columnId = this.card.columnId;
+    const column = state.columns[columnId];
 
     // Card
     const newCards = { ...state.cards }; //Membuat salinan Cards dari data yang lama
@@ -55,7 +56,7 @@ export default class CreateCardCommand extends Command {
 
     const newColumns = {
       ...state.columns,
-      [this.columnId]: newColumn,
+      [columnId]: newColumn,
     };
 
     // Memperbarui State yang sudah berhasil di Undo

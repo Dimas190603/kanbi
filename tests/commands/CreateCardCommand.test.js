@@ -26,7 +26,7 @@ describe('CreateCardCommand', () => {
   });
 
   it('menambahkan card baru ke dalam cards tanpa mutasi data lama', () => {
-    new CreateCardCommand(store, 'col-1', newCard).execute();
+    new CreateCardCommand(store, newCard).execute();
 
     const state = store.getState();
     expect(state.cards['card-1']).toEqual(newCard);
@@ -35,7 +35,7 @@ describe('CreateCardCommand', () => {
   });
 
   it('mengembalikan state seperti semula setelah di-undo', () => {
-    const command = new CreateCardCommand(store, 'col-1', newCard);
+    const command = new CreateCardCommand(store, newCard);
     command.execute();
     command.undo();
 

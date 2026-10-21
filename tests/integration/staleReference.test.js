@@ -43,7 +43,7 @@ describe('Beberapa command berturut-turut tetap konsisten', () => {
   });
 
   it('create -> move -> undo tidak menggandakan card', () => {
-    manager.execute(new CreateCardCommand(store, 'col-1', card2));
+    manager.execute(new CreateCardCommand(store, card2));
     manager.execute(new MoveCardCommand(store, 'card-1', 'col-1', 'col-2'));
     manager.undo();
 
@@ -53,7 +53,7 @@ describe('Beberapa command berturut-turut tetap konsisten', () => {
   });
 
   it('create -> delete -> undo tidak menghilangkan card lain', () => {
-    manager.execute(new CreateCardCommand(store, 'col-1', card2));
+    manager.execute(new CreateCardCommand(store, card2));
     manager.execute(new DeleteCardCommand(store, 'col-1', 'card-1'));
     manager.undo();
 
