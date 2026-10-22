@@ -1,5 +1,6 @@
 export function createCardElement(card) {
   const item = document.createElement('li');
+  item.className = 'list-card';
 
   const title = document.createElement('h3');
   title.textContent = card.title;
@@ -7,7 +8,14 @@ export function createCardElement(card) {
   const description = document.createElement('p');
   description.textContent = card.description;
 
-  item.append(title, description);
+  const button = document.createElement('button');
+  button.textContent = 'Hapus';
+  button.type = 'button';
+  button.className = 'delete-card-btn';
+  button.setAttribute('aria-label', `Hapus card ${card.title}`);
+  button.dataset.cardId = card.id;
+
+  item.append(title, description, button);
   return item;
 }
 

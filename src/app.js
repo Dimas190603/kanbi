@@ -1,6 +1,10 @@
 import renderBoard from './views/BoardView.js';
 import Card from './models/Card.js';
 import CreateCardCommand from './commands/CreateCardCommand.js';
+import DeleteCardCommand from './commands/DeleteCardCommand.js';
+
+// Core
+import { findColumnIdByCardId } from './core/selectors.js';
 
 export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
   const updateButtons = () => {
@@ -35,7 +39,7 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
     }
   });
 
-  // Tambah card: satu listener delegasi di boardEl, karena form dibuat ulang tiap render
+  // Tambah card: satu listener delegasi di boardEl
   boardEl.addEventListener('submit', (event) => {
     const form = event.target.closest('.add-card-form');
     if (!form) return;
@@ -51,5 +55,19 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
       columnId: form.dataset.columnId,
     });
     manager.execute(new CreateCardCommand(store, card));
+  });
+
+  // Event Hapus Card
+  boardEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.delete-card-btn');
+    if (!btn) return;
+
+    const cardId = btn.dataset.cardId;
+
+    const state = store.getState();
+    const columnId = findColumnIdByCardId(store.getState(), cardId);
+    if (!columnId) return;
+
+    manager.execute(new DeleteCardCommand(store, columnId, cardId));
   });
 }
