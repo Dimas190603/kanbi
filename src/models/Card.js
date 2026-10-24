@@ -4,7 +4,6 @@ export default class Card {
     title,
     description,
     columnId,
-    order,
     createdAt = new Date().toISOString(),
     updatedAt = null,
   }) {
@@ -12,7 +11,6 @@ export default class Card {
     this.title = title;
     this.description = description;
     this.columnId = columnId;
-    this.order = order;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
