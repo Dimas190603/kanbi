@@ -1,62 +1,66 @@
 import Command from '../core/Command.js';
 
 export default class MoveCardCommand extends Command {
-  constructor(store, cardId, sourceColumnId, destinationColumnId) {
+  constructor(store, cardId, sourceColumnId, destinationColumnId, toIndex) {
     super();
     this.store = store;
     this.cardId = cardId;
     this.sourceColumnId = sourceColumnId;
     this.destinationColumnId = destinationColumnId;
+    this.toIndex = toIndex;
     this.sourceIndex = -1;
   }
 
   execute() {
     const state = this.store.getState();
-
     this.sourceIndex = state.columns[this.sourceColumnId].cardIds.indexOf(
       this.cardId
     );
-    this.#moveCard(this.sourceColumnId, this.destinationColumnId);
+    if (this.sourceIndex === -1) {
+      throw new Error(
+        `MoveCardCommand: card "${this.cardId}" tidak ada dikolom "${this.sourceColumnId}"`
+      );
+    }
+
+    this.#move(this.sourceColumnId, this.destinationColumnId, this.toIndex);
   }
 
   undo() {
-    this.#moveCard(
-      this.destinationColumnId,
-      this.sourceColumnId,
-      this.sourceIndex
-    );
+    this.#move(this.destinationColumnId, this.sourceColumnId, this.sourceIndex);
   }
 
-  #moveCard(fromId, toId, insertIndex = null) {
+  #move(fromId, toId, insertIndex) {
     const state = this.store.getState();
-    const from = state.columns[fromId];
-    const to = state.columns[toId];
+    const fromCol = state.columns[fromId];
+    const toCol = state.columns[toId];
 
-    const newFromColumn = {
-      ...from,
-      cardIds: from.cardIds.filter((id) => id !== this.cardId),
+    const withoutCard = fromCol.cardIds.filter((id) => id !== this.cardId);
+
+    // Kolom yang sama: Menyisipkan ke daftar yang card-nya sudah dikeluarkan
+    const targetIds = fromId === toId ? withoutCard : toCol.cardIds;
+    const index = Math.max(
+      0,
+      Math.min(insertIndex ?? targetIds.length, targetIds.length)
+    );
+
+    const newToIds = [
+      ...targetIds.slice(0, index),
+      this.cardId,
+      ...targetIds.slice(index),
+    ];
+
+    const columns = {
+      ...state.columns,
+      [fromId]: { ...fromCol, cardIds: withoutCard },
+    };
+    // Untuk kolom yang sama, ini menimpa dengan hasil akhir
+    columns[toId] = { ...toCol, cardIds: newToIds };
+
+    const cards = {
+      ...state.cards,
+      [this.cardId]: { ...state.cards[this.cardId], columnId: toId },
     };
 
-    const index = insertIndex ?? to.cardIds.length;
-    const newToColumn = {
-      ...to,
-      cardIds: [
-        ...to.cardIds.slice(0, index),
-        this.cardId,
-        ...to.cardIds.slice(index),
-      ],
-    };
-
-    const newCard = { ...state.cards[this.cardId], columnId: toId };
-
-    this.store.setState({
-      ...state,
-      cards: { ...state.cards, [this.cardId]: newCard },
-      columns: {
-        ...state.columns,
-        [fromId]: newFromColumn,
-        [toId]: newToColumn,
-      },
-    });
+    this.store.setState({ ...state, columns, cards });
   }
 }

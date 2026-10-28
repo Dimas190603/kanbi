@@ -118,6 +118,12 @@ const newCard = new Card({
   description: 'Tes card baru',
   columnId: column.id,
 });
+const card3 = new Card({
+  id: 'card-3',
+  title: 'Thirty Card',
+  description: 'Tes card baru',
+  columnId: column.id,
+});
 
 // Store data
 const store = new Store(state);
@@ -129,9 +135,8 @@ store.subscribe(() => {
   console.log('state sekarang:', structuredClone(store.getState()));
 });
 manager.execute(new CreateCardCommand(store, newCard));
+manager.execute(new CreateCardCommand(store, card3));
 
 // manager.execute(new DeleteCardCommand(store, column.id, card.id));
 
-// manager.execute(
-//   new MoveCardCommand(store, newCard.id, column.id, inProgresColumn.id)
-// );
+manager.execute(new MoveCardCommand(store, card3.id, column.id, column.id, 1));
