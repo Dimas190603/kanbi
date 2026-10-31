@@ -2,11 +2,19 @@ import renderBoard from './views/BoardView.js';
 import Card from './models/Card.js';
 import CreateCardCommand from './commands/CreateCardCommand.js';
 import DeleteCardCommand from './commands/DeleteCardCommand.js';
+import MoveCardCommand from './commands/MoveCardCommand.js';
 
 // Core
 import { findColumnIdByCardId } from './core/selectors.js';
+import { getDropIndex } from './core/dropIndex.js';
 
 export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
+  if (!store || !manager || !boardEl || !undoBtn || !redoBtn) {
+    throw new Error(
+      'initApp: butuh { store, manager, boardEl, undoBtn, redoBtn}. Periksa pemanggilan di main.js'
+    );
+  }
+
   const updateButtons = () => {
     undoBtn.disabled = !manager.canUndo();
     redoBtn.disabled = !manager.canRedo();
@@ -63,11 +71,77 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
     if (!btn) return;
 
     const cardId = btn.dataset.cardId;
-
     const state = store.getState();
-    const columnId = findColumnIdByCardId(store.getState(), cardId);
+    const columnId = findColumnIdByCardId(state, cardId);
     if (!columnId) return;
 
     manager.execute(new DeleteCardCommand(store, columnId, cardId));
   });
+
+  // =====> Drag & Drop (native HTML) <=====
+  let draggedCardId = null;
+
+  const resetDragState = () => {
+    draggedCardId = null;
+    boardEl
+      .querySelectorAll('.dragging, .drop-target')
+      .forEach((el) => el.classList.remove('dragging', 'drop-target'));
+  };
+
+  boardEl.addEventListener('dragstart', (e) => {
+    const cardEl = e.target.closest?.('.card');
+    if (!cardEl) return;
+
+    draggedCardId = cardEl.dataset.cardId;
+    e.dataTransfer.setData('text/plain', draggedCardId);
+    e.dataTransfer.effectAllowed = 'move';
+    cardEl.classList.add('dragging');
+  });
+
+  boardEl.addEventListener('dragover', (e) => {
+    if (!draggedCardId) return;
+
+    const columnEl = e.target.closest('.column');
+    if (!columnEl) return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    if (!columnEl.classList.contains('drop-target')) {
+      boardEl
+        .querySelectorAll('.drop-target')
+        .forEach((e) => e.classList.remove('drop-target'));
+      columnEl.classList.add('drop-target');
+    }
+  });
+
+  boardEl.addEventListener('drop', (e) => {
+    if (!draggedCardId) return;
+
+    const columnEl = e.target.closest('.column');
+    if (!columnEl) return;
+
+    e.preventDefault();
+
+    const cardId = draggedCardId;
+    const toColumnId = columnEl.dataset.columnId;
+    const toIndex = getDropIndex(columnEl, cardId, e.clientY);
+
+    const state = store.getState();
+    const fromColumnId = findColumnIdByCardId(state, cardId);
+
+    resetDragState();
+
+    if (!fromColumnId) return;
+
+    const fromIndex = state.columns[fromColumnId].cardIds.indexOf(cardId);
+    const isNoOp = fromColumnId === toColumnId && fromIndex === toIndex;
+    if (isNoOp) return;
+
+    manager.execute(
+      new MoveCardCommand(store, cardId, fromColumnId, toColumnId, toIndex)
+    );
+  });
+
+  boardEl.addEventListener('dragend', resetDragState);
 }

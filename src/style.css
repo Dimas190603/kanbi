@@ -25,6 +25,21 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* Drag & Drop Style */
+  .card {
+    cursor: grab;
+  }
+  .card.dragging {
+    opacity: 0.4;
+  }
+  .card-list {
+    min-height: 40px;
+  }
+  .column.drop-target {
+    outline: 2px dashed #6366f1;
+    outline-offset: 4px;
+  }
+
   @media (max-width: 1024px) {
     font-size: 16px;
   }
@@ -156,7 +171,7 @@ code {
   }
 }
 
-#app {
+/* #app {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
@@ -166,7 +181,7 @@ code {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
+} */
 
 #center {
   display: flex;

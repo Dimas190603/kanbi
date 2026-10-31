@@ -1,6 +1,8 @@
 export function createCardElement(card) {
   const item = document.createElement('li');
-  item.className = 'list-card';
+  item.className = 'card';
+  item.draggable = true;
+  item.dataset.cardId = card.id;
 
   const title = document.createElement('h3');
   title.textContent = card.title;
@@ -21,11 +23,14 @@ export function createCardElement(card) {
 
 export function createColumnElement(column, cards) {
   const container = document.createElement('div');
+  container.className = 'column';
+  container.dataset.columnId = column.id;
 
   const title = document.createElement('h2');
   title.textContent = column.name;
 
   const list = document.createElement('ul');
+  list.className = 'card-list';
   cards.forEach((card) => {
     const cardElement = createCardElement(card);
     list.appendChild(cardElement);
