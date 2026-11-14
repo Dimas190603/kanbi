@@ -10,14 +10,23 @@ export function createCardElement(card) {
   const description = document.createElement('p');
   description.textContent = card.description;
 
-  const button = document.createElement('button');
-  button.textContent = 'Hapus';
-  button.type = 'button';
-  button.className = 'delete-card-btn';
-  button.setAttribute('aria-label', `Hapus card ${card.title}`);
-  button.dataset.cardId = card.id;
+  // ----- Delete Button -----
+  const deletedButton = document.createElement('button');
+  deletedButton.textContent = 'Hapus';
+  deletedButton.type = 'button';
+  deletedButton.className = 'delete-card-btn';
+  deletedButton.setAttribute('aria-label', `Hapus card ${card.title}`);
+  deletedButton.dataset.cardId = card.id;
 
-  item.append(title, description, button);
+  // ----- Edit Button -----
+  const editButton = document.createElement('button');
+  editButton.type = 'button';
+  editButton.className = 'edit-card-btn';
+  editButton.textContent = 'Edit';
+  editButton.setAttribute('aria-label', `Edit card ${card.title}`);
+  editButton.dataset.cardId = card.id;
+
+  item.append(title, description, deletedButton, editButton);
   return item;
 }
 

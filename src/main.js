@@ -72,6 +72,7 @@ import initApp from './app.js';
 const boardEl = document.querySelector('#board');
 const undoBtn = document.querySelector('#undo-btn');
 const redoBtn = document.querySelector('#redo-btn');
+const editDialog = document.querySelector('#edit-card-dialog');
 
 // Card
 const card = new Card({
@@ -130,7 +131,7 @@ const store = new Store(state);
 
 const manager = new CommandManager();
 
-initApp({ store, manager, boardEl, undoBtn, redoBtn });
+initApp({ store, manager, boardEl, undoBtn, redoBtn, editDialog });
 store.subscribe(() => {
   console.log('state sekarang:', structuredClone(store.getState()));
 });

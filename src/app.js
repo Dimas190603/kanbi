@@ -1,14 +1,25 @@
 import renderBoard from './views/BoardView.js';
 import Card from './models/Card.js';
+
+// -----> Commands <-----
 import CreateCardCommand from './commands/CreateCardCommand.js';
 import DeleteCardCommand from './commands/DeleteCardCommand.js';
 import MoveCardCommand from './commands/MoveCardCommand.js';
+import EditCardCommand from './commands/EditCardCommand.js';
 
-// Core
+// -----> Core <-----
 import { findColumnIdByCardId } from './core/selectors.js';
 import { getDropIndex } from './core/dropIndex.js';
+import { getCardChanges } from './core/cardChanges.js';
 
-export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
+export default function initApp({
+  store,
+  manager,
+  boardEl,
+  undoBtn,
+  redoBtn,
+  editDialog,
+}) {
   if (!store || !manager || !boardEl || !undoBtn || !redoBtn) {
     throw new Error(
       'initApp: butuh { store, manager, boardEl, undoBtn, redoBtn}. Periksa pemanggilan di main.js'
@@ -33,6 +44,7 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
   // Undo / Redo lewat keyboard
   document.addEventListener('keydown', (event) => {
     // Jangan membajak undo bawaan browser saat user sedang mengetik
+    if (editDialog.open) return;
     if (event.target.matches('input, textarea, [contenteditable="true"]'))
       return;
     if (!(event.ctrlKey || event.metaKey)) return;
@@ -47,7 +59,7 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
     }
   });
 
-  // Tambah card: satu listener delegasi di boardEl
+  // =====> Command Add Card <=====
   boardEl.addEventListener('submit', (event) => {
     const form = event.target.closest('.add-card-form');
     if (!form) return;
@@ -65,7 +77,7 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
     manager.execute(new CreateCardCommand(store, card));
   });
 
-  // Event Hapus Card
+  // =====> Command Delete Card <=====
   boardEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.delete-card-btn');
     if (!btn) return;
@@ -76,6 +88,57 @@ export default function initApp({ store, manager, boardEl, undoBtn, redoBtn }) {
     if (!columnId) return;
 
     manager.execute(new DeleteCardCommand(store, columnId, cardId));
+  });
+
+  // =====> Command Edit Card <=====
+  const editForm = editDialog.querySelector('form');
+  const titleInput = editForm.elements.title;
+  const descriptionInput = editForm.elements.description;
+  const cancelBtn = editDialog.querySelector('#edit-card-cancel');
+  let editingCardId = null;
+
+  boardEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.edit-card-btn');
+    if (!btn) return;
+
+    const card = store.getState().cards[btn.dataset.cardId];
+    if (!card) return;
+
+    editingCardId = card.id;
+    titleInput.value = card.title;
+    descriptionInput.value = card.description ?? '';
+    editDialog.showModal();
+  });
+  // --- Edit Save Button ---
+  editForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const card = store.getState().cards[editingCardId];
+    if (!card) {
+      editDialog.close();
+      return;
+    }
+
+    const title = titleInput.value.trim();
+    if (!title) {
+      titleInput.focus();
+      return;
+    }
+
+    const changes = getCardChanges(card, {
+      title,
+      description: descriptionInput.value.trim(),
+    });
+
+    editDialog.close();
+    if (Object.keys(changes).length === 0) return;
+
+    manager.execute(new EditCardCommand(store, card.id, changes));
+  });
+  // --- Edit Cancelled Button ---
+  cancelBtn.addEventListener('click', () => editDialog.close());
+
+  editDialog.addEventListener('close', () => {
+    editingCardId = null;
   });
 
   // =====> Drag & Drop (native HTML) <=====

@@ -9,11 +9,29 @@
 </head>
 
 <body>
-  <div id="app"></div>
+  <!-- <div id="app"></div> -->
   <button id="undo-btn" type="button">Undo</button>
   <button id="redo-btn" type="button">Redo</button>
-  <section id="board">
 
+  <section id="board"></section>
+
+  <section>
+    <dialog id="edit-card-dialog" aria-labelledby="edit-card-heading">
+      <form>
+        <h2 id="edit-card-heading">Edit Card</h2>
+
+        <label for="edit-card-title-input">Title</label>
+        <input id="edit-card-title-input" name="title" type="text" required>
+
+        <label for="edit-card-description-input">Description</label>
+        <textarea name="description" id="edit-card-description-input" rows="4"></textarea>
+
+        <div>
+          <button type="submit">Save</button>
+          <button type="button" id="edit-card-cancel">Cancelled</button>
+        </div>
+      </form>
+    </dialog>
   </section>
   <script type="module" src="/src/main.js"></script>
 </body>

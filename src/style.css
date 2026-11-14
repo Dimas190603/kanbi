@@ -40,6 +40,15 @@
     outline-offset: 4px;
   }
 
+  #edit-card-dialog::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+  #edit-card-dialog form {
+    display: grid;
+    gap: 0.5rem;
+    min-width: min(90vw, 24rem);
+  }
+
   @media (max-width: 1024px) {
     font-size: 16px;
   }
