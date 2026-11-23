@@ -1,143 +1,73 @@
 import './style.css';
-// import javascriptLogo from './assets/javascript.svg';
-// import viteLogo from './assets/vite.svg';
-// import heroImg from './assets/hero.png';
-import Board from './models/board.js';
-import Card from './models/Card.js';
-import Column from './models/Column.js';
 import Store from './core/Store.js';
 import CommandManager from './core/CommandManager.js';
-import CreateCardCommand from './commands/CreateCardCommand.js';
-import DeleteCardCommand from './commands/DeleteCardCommand.js';
-
-import renderBoard from './views/BoardView.js';
-import MoveCardCommand from './commands/MoveCardCommand.js';
-
+import { createInitialState } from './core/initialState.js';
+import IndexedDBAdapter from './persistence/IndexedDBAdapter.js';
+import {
+  attachPersistence,
+  SCHEMA_VERSION,
+} from './persistence/persistence.js';
+import { isValidState } from './persistence/validateState.js';
 import initApp from './app.js';
 
-// document.querySelector('#app').innerHTML = `
-// <section id="center">
-//   <div class="hero">
-//     <img src="${heroImg}" class="base" width="170" height="179">
-//     <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-//     <img src="${viteLogo}" class="vite" alt="Vite logo" />
-//   </div>
-//   <div>
-//     <h1>Get started</h1>
-//     <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-//   </div>
-//   <button id="counter" type="button" class="counter"></button>
-// </section>
+const statusEl = document.querySelector('#persistence-status');
 
-// <div class="ticks"></div>
+function showStatus(message) {
+  statusEl.textContent = message;
+  statusEl.hidden = false;
+}
 
-// <section id="next-steps">
-//   <div id="docs">
-//     <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-//     <h2>Documentation</h2>
-//     <p>Your questions, answered</p>
-//     <ul>
-//       <li>
-//         <a href="https://vite.dev/" target="_blank">
-//           <img class="logo" src="${viteLogo}" alt="" />
-//           Explore Vite
-//         </a>
-//       </li>
-//       <li>
-//         <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-//           <img class="button-icon" src="${javascriptLogo}" alt="">
-//           Learn more
-//         </a>
-//       </li>
-//     </ul>
-//   </div>
-//   <div id="social">
-//     <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-//     <h2>Connect with us</h2>
-//     <p>Join the Vite community</p>
-//     <ul>
-//       <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-//       <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-//       <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-//       <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-//     </ul>
-//   </div>
-// </section>
+async function bootstrap() {
+  const adapter = new IndexedDBAdapter();
+  let state = null;
+  let storageAvailable = true;
 
-// <div class="ticks"></div>
-// <section id="spacer"></section>
-// `;
+  try {
+    const record = await adapter.load();
+    if (record) {
+      if (record.version === SCHEMA_VERSION && isValidState(record.state)) {
+        state = record.state;
+      } else {
+        showStatus(
+          'Stored data is unrecognized. A new board is initialized, and the old data is copied as a backup.'
+        );
+        await adapter.save(record, 'board-backup').catch(() => {});
+      }
+    }
+  } catch {
+    storageAvailable = false;
+    showStatus(
+      'Storage is unavailable: changes will be lost when the page is closed.'
+    );
+  }
 
-// DOM
-const boardEl = document.querySelector('#board');
-const undoBtn = document.querySelector('#undo-btn');
-const redoBtn = document.querySelector('#redo-btn');
-const editDialog = document.querySelector('#edit-card-dialog');
+  const store = new Store(state ?? createInitialState());
+  const manager = new CommandManager();
 
-// Card
-const card = new Card({
-  id: 'card-1',
-  title: 'Managing State',
-  description: 'Bab 1 Reacting to Input with State',
-  columnId: 'col-1',
-});
+  if (storageAvailable) {
+    const persistence = attachPersistence({
+      store,
+      adapter,
+      onError: () =>
+        showStatus(
+          'Failed to save the lates t changes. The data may not have been saved'
+        ),
+    });
 
-// Column
-const column = new Column({
-  id: 'col-1',
-  name: 'Belajar React',
-  cardIds: ['card-1'],
-});
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') persistence.flush();
+    });
+    window.addEventListener('pagehide', () => persistence.flush());
+  }
 
-const inProgresColumn = new Column({
-  id: 'col-2',
-  name: 'In Progress',
-  cardIds: [],
-});
+  initApp({
+    store,
+    manager,
+    boardEl: document.querySelector('#board'),
+    undoBtn: document.querySelector('#undo-btn'),
+    redoBtn: document.querySelector('#redo-btn'),
+    editDialog: document.querySelector('#edit-card-dialog'),
+  });
+}
 
-// Board
-const board = new Board({
-  id: 'board-1',
-  name: 'Aktifitas Harian',
-});
-
-const state = {
-  board,
-  cards: {
-    [card.id]: card,
-  },
-  columns: {
-    [column.id]: column,
-    [inProgresColumn.id]: inProgresColumn,
-  },
-  columnOrder: ['col-1', 'col-2'],
-};
-
-const newCard = new Card({
-  id: 'card-2',
-  title: 'Second Card',
-  description: 'Tes card baru',
-  columnId: column.id,
-});
-const card3 = new Card({
-  id: 'card-3',
-  title: 'Thirty Card',
-  description: 'Tes card baru',
-  columnId: column.id,
-});
-
-// Store data
-const store = new Store(state);
-
-const manager = new CommandManager();
-
-initApp({ store, manager, boardEl, undoBtn, redoBtn, editDialog });
-store.subscribe(() => {
-  console.log('state sekarang:', structuredClone(store.getState()));
-});
-manager.execute(new CreateCardCommand(store, newCard));
-manager.execute(new CreateCardCommand(store, card3));
-
-// manager.execute(new DeleteCardCommand(store, column.id, card.id));
-
-manager.execute(new MoveCardCommand(store, card3.id, column.id, column.id, 1));
+bootstrap();
