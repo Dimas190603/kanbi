@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isValidState } from '../../src/persistence/validateState';
-import { createInitialState } from '../../src/core/intialState';
+import { createInitialState } from '../../src/core/initialState';
 
 describe('isValidate', () => {
   const validState = () => ({

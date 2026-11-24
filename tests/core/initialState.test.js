@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState } from '../../src/core/intialState';
+import { createInitialState } from '../../src/core/initialState';
 
 describe('createInitialState', () => {
   it('Punya 3 kolom To Do, In Progress, Done tanpa card', () => {
