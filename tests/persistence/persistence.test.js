@@ -50,7 +50,7 @@ describe('attachPersistence', () => {
     store.setState({ n: 3 });
     vi.advanceTimersByTime(300);
 
-    expect(adapter.save).toHaveBeenCalled(1);
+    expect(adapter.save).toHaveBeenCalledTimes(1);
     expect(adapter.save).toHaveBeenCalledWith({
       version: SCHEMA_VERSION,
       state: { n: 3 },
