@@ -5,16 +5,21 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Kanbi: Kanban board with undo/redo, drag and drop, and offline storage, built without any framework." />
   <title>kanban-project</title>
 </head>
 
 <body>
-  <!-- <div id="app"></div> -->
-  <button id="undo-btn" type="button">Undo</button>
-  <button id="redo-btn" type="button">Redo</button>
+  <main>
+    <h1>Kanbi D</h1>
+    <!-- <div id="app"></div> -->
+    <button id="undo-btn" type="button">Undo</button>
+    <button id="redo-btn" type="button">Redo</button>
 
-  <p id="persistence-status" role="status" hidden></p>
-  <section id="board"></section>
+    <p id="persistence-status" role="status" hidden></p>
+    <section id="board"></section>
+  </main>
 
   <section>
     <dialog id="edit-card-dialog" aria-labelledby="edit-card-heading">
