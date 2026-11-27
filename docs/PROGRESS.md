@@ -43,28 +43,32 @@ Cara membaca: `[x]` selesai, `[ ]` belum. Item bertanda "(sebagian)" berarti ada
 ## Definition of Done
 
 - [ ] Semua fitur Tier 2 berjalan (1 dari 7)
-- [ ] Unit test lengkap: `Store`, `CommandManager`, semua command, dan persistence sudah; test model `Board`, `Card`, `Column` belum
-- [ ] Tidak ada error/warning di console (belum diaudit)
-- [ ] Skor Lighthouse baik (belum diukur)
+- [x] Unit test lengkap: `Store`, `CommandManager`, semua command, dan persistence sudah; test model `Board`, `Card`, `Column` sudah
+- [x] Tidak ada error/warning di console
+- [ ] Skor Lighthouse baik (belum diukur),
+      (Baseline (server dev, mobile): Performance 90, Accessibility 100, Best Practices 100, SEO 91. Ukur ulang di build production dan setelah deploy.)
+- [x] Kerangka README (dwibahasa)
+- [x] SEO dan a11y dasar: lang, meta description, title, main, h1
+- [x] Adapter IndexedDB membuka ulang koneksi yang tertutup
 - [ ] Responsif mobile, tablet, desktop
 - [ ] Live demo ter-deploy
 - [ ] README lengkap (tech stack, cara menjalankan, tautan demo, keputusan arsitektur)
 
-Jumlah test saat ini: 79 Test
+Jumlah test saat ini: 91 Test
 
 ## Tooling dan Praktik
 
 - [x] Vite, ESLint, Prettier, Vitest
 - [x] Git dengan branch `main` / `dev` dan commit per unit kerja
-- [ ] Repo di-push ke GitHub (cek `git remote -v`)
+- [x] Repo di-push ke GitHub (cek `git remote -v`)
 - [ ] CI (GitHub Actions) dan deploy
 - [ ] Migrasi ke TypeScript (sengaja ditunda sampai selesai belajar)
 
 ## Tugas Perapian
 
 - [x] Hapus `Card.order` dari model (urutan sudah dimiliki `column.cardIds`)
-- [ ] Test untuk `Board`, `Card`, `Column`
-- [ ] Audit console browser
+- [x] Test untuk `Board`, `Card`, `Column`
+- [x] Audit console browser
 - [ ] Perbarui Charter: `EventBus` tidak dibuat karena `Store` dan `CommandManager` sudah punya observer sendiri
 - [ ] Samakan bahasa UI
 
